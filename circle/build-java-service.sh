@@ -20,10 +20,14 @@ if [ "${CIRCLE_BRANCH}" != "master" -a "${CIRCLE_BRANCH}" != "develop" ]; then
     curl -s "https://coveralls.io/builds/${CIRCLE_SHA1}.json?repo_token=${COVERALLS_REPO_TOKEN}" 2>/dev/null | parse-coveralls-status.py
     STATUS=$?
     TRIES=$(($TRIES+1))
-    if [ $STATUS -eq 255 ]; then
-      echo $STATUS
-      echo $TRIES
+    if [ $STATUS -eq 255 -a $TRIES -lt 10 ]; then
+      echo "Coveralls is still processing, sleeping and retrying after $TRIES retries"
       sleep 10
     fi
-  done && exit $STATUS
+  done
+  if [ $STATUS -eq 255 ]; then
+    echo "Giving up on coveralls after $TRIES retries"
+    exit 0
+  fi
+  exit $STATUS
 fi
