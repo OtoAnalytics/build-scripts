@@ -9,7 +9,11 @@
 
 set -e
 
-mvn deploy
+if [ -z "${MVN_ARGS}" ]; then
+  mvn deploy 
+else
+  mvn deploy ${MVN_ARGS}
+fi
 
 set +e
 
