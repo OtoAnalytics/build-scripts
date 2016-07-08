@@ -10,7 +10,7 @@
 set -e
 
 if [ -z "${MVN_ARGS}" ]; then
-  mvn deploy 
+  mvn --batch-mode deploy
 else
-  mvn deploy ${MVN_ARGS}
+  mvn --batch-mode deploy ${MVN_ARGS}
 fi
