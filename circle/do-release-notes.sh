@@ -5,11 +5,19 @@
 # Non Circle Provided Input Variables:
 #   CURRENT_VERSION: mvn version of the completed build
 #   GITHUB_AUTH_TOKEN: auth token to hit the github API with
+#   GIT_USER: User name to use to tag git release
+#   GIT_EMAIL: Email to use to tag git release
 
 set +e
 
 if [ "${CIRCLE_BRANCH}" = "master" ]; then
-  git tag ${CURRENT_VERSION}
+  if [ -z "${GIT_USER}" ]; then
+    git tag ${CURRENT_VERSION}
+  else
+    git config --global user.email "${GIT_EMAIL}"
+    git config --global user.name "${GIT_USER}"
+    git tag -a -m "Release of ${CURRENT_VERSION}" ${CURRENT_VERSION} 
+  fi
   git push origin --tags
   PREVIOUS_VERSION=$(git tag | sort -V |grep ${CURRENT_VERSION} -B1 |head -n 1)
   RELEASE_NOTES=$(git log --pretty=format:'* %s\r\n' ${PREVIOUS_VERSION}..${CURRENT_VERSION} | sed 's/"/\\"/g'|tr -d '\n')
