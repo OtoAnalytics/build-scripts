@@ -20,9 +20,9 @@ while IFS=: read REPO ECS_SERVICE; do
   docker push ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
     echo "./ecsman -cred env update $ECS_PROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}"
-    ./ecsman -cred env update $ECS_PROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}
+    ./ecsman -cred env update $ECS_PROD_CLUSTER ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}
   else
     echo "./ecsman -cred env update $ECS_PREPROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}"
-    ./ecsman -cred env update $ECS_PREPROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}
+    ./ecsman -cred env update $ECS_PREPROD_CLUSTER ${ECS_SERVICE}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}
   fi
 done < docker_services.yml
