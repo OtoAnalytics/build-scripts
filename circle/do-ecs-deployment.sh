@@ -18,7 +18,7 @@ while IFS=: read REPO ECS_SERVICE; do
   # retag ${SPECIFIC_BRANCH}, then deploy based on that tag
   docker tag ${REPO_ROOT}/${REPO}:${CIRCLE_BRANCH} ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   docker push ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
-  if [ "${CIRCLE_BRANCH}" = "master" ]; then
+  if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
     echo "./ecsman -cred env update $ECS_PROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}"
     ./ecsman -cred env update $ECS_PROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}
   else

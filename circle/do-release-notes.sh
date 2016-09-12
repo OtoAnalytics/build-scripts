@@ -10,7 +10,7 @@
 
 set +e
 
-if [ "${CIRCLE_BRANCH}" = "master" ]; then
+if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
   if [ -z "${GIT_USER}" ]; then
     git tag ${CURRENT_VERSION}
   else

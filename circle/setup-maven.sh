@@ -15,7 +15,7 @@ cp ~/build-scripts/circle/simplelogger.properties ${M2_HOME}/conf/logging/simple
 cp ~/build-scripts/circle/aws-maven-assembler-fat.jar ${M2_HOME}/lib/aws-maven-assembler-fat.jar
 
 CURRENT_VERSION=$(mvn -q  -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec|sed 's/-.*//')
-if [ "${CIRCLE_BRANCH}" = "master" ]; then
+if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
   # create a release version by taking the leading version number and appending the build number
   NEW_VERSION=${CURRENT_VERSION}.${CIRCLE_BUILD_NUM}
 else
