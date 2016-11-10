@@ -8,7 +8,8 @@ can reference in order to do common build processes.
 Broken down into:
 - setup-java-service
    - setup-docker: downloads docker 1.8.2 and logs into quay
-   - setup-jce: installs JCE unlimited crypto
+   - setup-jce: installs JCE unlimited crypto 
+     - this depends on a private s3 bucket due to oracle website instability
    - setup-maven: sets up maven settings.xml and re-versions project
 - build-java-service
    - mvn deploy
