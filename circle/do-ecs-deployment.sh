@@ -11,18 +11,23 @@
 #   AWS_SECRET_ACCESS_KEY: secret key for AWS account to connect to ECS with
 
 set -e
+set -x
 
-curl -L https://github.com/womply/ecsman/blob/master/bin/ecsman.linux?raw=true > ./ecsman
+curl -sL https://github.com/womply/ecsman/blob/master/bin/ecsman.linux?raw=true > ./ecsman
 chmod +x ./ecsman
 while IFS=: read REPO ECS_SERVICE; do
   # retag ${SPECIFIC_BRANCH}, then deploy based on that tag
   docker tag ${REPO_ROOT}/${REPO}:${CIRCLE_BRANCH} ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   docker push ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
-    echo "./ecsman -cred env update $ECS_PROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}"
-    ./ecsman -cred env update $ECS_PROD_CLUSTER ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}
+    ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
   else
-    echo "./ecsman -cred env update $ECS_PREPROD_CLUSTER $ECS_SERVICE :${SPECIFIC_BRANCH}"
-    ./ecsman -cred env update $ECS_PREPROD_CLUSTER ${ECS_SERVICE}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}
+    if [[ $ECS_PREPROD_CLUSTER =~ ^beta.* ]]; then
+      ECS_SERVICE_PREFIX='beta-'
+      ECSMAN_ARGS="${ECS_PREPROD_CLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    else
+      ECSMAN_ARGS="${ECS_PREPROD_CLUSTER} ${ECS_SERVICE}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    fi
   fi
+  ./ecsman -cred env update $ECSMAN_ARGS
 done < docker_services.yml
