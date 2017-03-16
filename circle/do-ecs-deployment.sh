@@ -20,7 +20,12 @@ while IFS=: read REPO ECS_SERVICE; do
   docker tag ${REPO_ROOT}/${REPO}:${CIRCLE_BRANCH} ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   docker push ${REPO_ROOT}/${REPO}:${SPECIFIC_BRANCH}
   if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
-    ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    if [ "${ECS_PROD_CLUSTER}" = "prod-services" ]; then
+      ECS_SERVICE_PREFIX='prod-'
+      ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    else
+      ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    fi
   else
     if [[ $ECS_PREPROD_CLUSTER =~ ^beta.* ]]; then
       ECS_SERVICE_PREFIX='beta-'
