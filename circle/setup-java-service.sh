@@ -10,6 +10,7 @@
 
 set -e
 
+stop-competitors.sh
 setup-docker.sh
 setup-jce.sh
 setup-maven.sh "$@"
