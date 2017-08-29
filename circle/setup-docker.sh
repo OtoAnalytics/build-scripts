@@ -10,7 +10,7 @@
 
 set -e
 
-sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.8.2-circleci'
+sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
 sudo chmod 0755 /usr/bin/docker
 sudo service docker start
 
