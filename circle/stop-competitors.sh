@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 sudo service mysql stop
 sudo service postgresql stop
 sudo service mongodb stop
