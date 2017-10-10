@@ -16,16 +16,23 @@ declare -rx BUILDSCRIPTS="${HOME}/build-scripts/circle"
 # Required Items
 declare -rx stop_competitors="${BUILDSCRIPTS}/stop-competitors.sh"
 declare -rx setup_docker="${BUILDSCRIPTS}/setup-docker.sh"
-
-if test ! -x "$stop_competitors"; then
-    printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$stop_competitors" >&2
-    exit 192
-fi
+declare -rx setup_ruby="${BUILDSCRIPTS}/setup-ruby.sh"
 
 if test ! -x "$setup_docker"; then
     printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$setup_docker" >&2
     exit 192
 fi
 
+if test ! -x "$stop_competitors"; then
+    printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$stop_competitors" >&2
+    exit 192
+fi
+
+if test ! -x "$setup_ruby"; then
+    printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$setup_docker" >&2
+    exit 192
+fi
+
 $stop_competitors
 $setup_docker
+$setup_ruby
