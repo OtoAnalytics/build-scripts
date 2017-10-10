@@ -19,6 +19,11 @@ declare -rx stop_competitors="${BUILDSCRIPTS}/stop-competitors.sh"
 declare -rx setup_docker="${BUILDSCRIPTS}/setup-docker.sh"
 declare -rx setup_ruby="${BUILDSCRIPTS}/setup-ruby.sh"
 
+stat $stop_competitors
+stat $setup_docker
+stat $setup_ruby
+
+
 if test ! -x "$stop_competitors"; then
     stat $stop_competitors
     printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$stop_competitors" >&2
