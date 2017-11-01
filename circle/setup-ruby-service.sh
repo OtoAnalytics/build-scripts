@@ -38,7 +38,7 @@ fi
 
 if test ! -x "$setup_ruby"; then
     stat $setup_ruby
-    printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$setup_ruby" >&2
+    printf "$SCRIPT:$LINENO: the command %s is not available - aborting\n" "$setup_docker" >&2
     exit 192
 fi
 
