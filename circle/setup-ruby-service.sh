@@ -37,6 +37,7 @@ if test ! -x "$setup_ruby"; then
     exit 192
 fi
 
+mkdir ~/docker_cache
 $stop_competitors
 $setup_docker
 $setup_ruby
