@@ -11,5 +11,5 @@
 set -e
 
 setup-docker.sh
-#setup-jce.sh
+setup-jce.sh
 setup-maven.sh "$@"
