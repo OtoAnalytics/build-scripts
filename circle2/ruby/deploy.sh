@@ -48,5 +48,5 @@ sleep 40
 deploy_finished
 
 if [ "$DOCKER_IMAGE_TAG" != "develop" ] && [ "$DOCKER_IMAGE_TAG" != "alpha" ]; then
-  ./notify_error_tracker.sh
+  ~/build-scripts/circle2/ruby/notify_error_tracker.sh
 fi
