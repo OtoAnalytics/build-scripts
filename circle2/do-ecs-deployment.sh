@@ -6,7 +6,7 @@
 #   REPO_ROOT: URL to the docker repository organization (eg quay.io/womply)
 #   SPECIFIC_BRANCH: docker image tag, generally ${TIMESTAMP}-${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 #   ECS_PROD_CLUSTER: cluster to deploy the master branch to
-#   ECS_PREPROD_CLUSTER: cluster to deploy the develop branch to
+#   ECS_PREPROD_CLUSTER: cluster(s) to deploy the develop branch to (space delimited)
 #   AWS_ACCESS_KEY_ID: access key for AWS account to connect to ECS with
 #   AWS_SECRET_ACCESS_KEY: secret key for AWS account to connect to ECS with
 
@@ -33,13 +33,19 @@ while IFS=: read REPO ECS_SERVICE; do
     else
       ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
     fi
+    ./ecsman -cred env update $ECSMAN_ARGS
   else
-    if [[ $ECS_PREPROD_CLUSTER =~ ^beta.* ]]; then
-      ECS_SERVICE_PREFIX='beta-'
-      ECSMAN_ARGS="${ECS_PREPROD_CLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
-    else
-      ECSMAN_ARGS="${ECS_PREPROD_CLUSTER} ${ECS_SERVICE}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
-    fi
+    for PREPRODCLUSTER in ${ECS_PREPROD_CLUSTER}; do
+      if [[ $PREPRODCLUSTER =~ ^beta.* ]]; then
+        ECS_SERVICE_PREFIX='beta-'
+        ECSMAN_ARGS="${PREPRODCLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+      elif [[ $PREPRODCLUSTER =~ ^alpha.* ]]; then
+        ECS_SERVICE_PREFIX='alpha-'
+        ECSMAN_ARGS="${PREPRODCLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+      else
+        ECSMAN_ARGS="${PREPRODCLUSTER} ${ECS_SERVICE}${PREPROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+      fi
+      ./ecsman -cred env update $ECSMAN_ARGS
+    done
   fi
-  ./ecsman -cred env update $ECSMAN_ARGS
 done < docker_services.yml
