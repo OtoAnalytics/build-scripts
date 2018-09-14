@@ -27,6 +27,9 @@ while IFS=: read REPO ECS_SERVICE; do
     elif [ "${ECS_PROD_CLUSTER}" = "prod-cde" ] ; then
       ECS_SERVICE_PREFIX='prod-cde-'
       ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
+    elif [ "${ECS_PROD_CLUSTER}" = "prod-cdeaccess" ] ; then
+      ECS_SERVICE_PREFIX='prod-cdeaccess-'
+      ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE_PREFIX}${REPO}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
     else
       ECSMAN_ARGS="${ECS_PROD_CLUSTER} ${ECS_SERVICE}${PROD_ECS_SUFFIX} :${SPECIFIC_BRANCH}"
     fi
