@@ -13,6 +13,7 @@ set -e
 mkdir -p ~/.m2
 echo $MVN_SETTINGS_XML > ~/.m2/settings.xml
 export M2_HOME=/usr/local/apache-maven
+curl -s http://mirrors.gigenet.com/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz | sudo tar xvfz - -C /usr/local/ && sudo rm /usr/local/apache-maven && sudo ln -s /usr/local/apache-maven-3.6.3/ $M2_HOME
 sudo cp ~/build-scripts/circle/simplelogger.properties ${M2_HOME}/conf/logging/simplelogger.properties
 sudo cp ~/build-scripts/circle/aws-maven-assembler-fat.jar ${M2_HOME}/lib/aws-maven-assembler-fat.jar
 
