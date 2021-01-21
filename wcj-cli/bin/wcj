@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+initialize() {
+  if [ -L "${BASH_SOURCE[0]}" ]; then
+    WCJ_DIR="$(cd "$(dirname $(readlink -f ${BASH_SOURCE[0]}))/.." && pwd)"
+  else
+    WCJ_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+  fi
+
+  DEFAULT_ENV_FILE="$WCJ_DIR/conf/default.env"
+  [ -f "$DEFAULT_ENV_FILE" ] || die "Could not find default env in $DEFAULT_ENV_FILE"
+  . $DEFAULT_ENV_FILE
+}
+
+usage() {
+  echo "usage: wcj <build|containers|upgrade>"
+}
+
+die() {
+  echo >&2 "$1"
+  exit 1
+}
+
+require_var() {
+  if [ -z ${!1} ]; then
+    die "Must set environment variable named $1"
+  fi
+}
+
+require_wcj_project() {
+  PROJECT_DIR="${PROJECT_DIR:-`pwd`}"
+
+  [[ -d "$PROJECT_DIR" ]] || die "The project directory $PROJECT_DIR does not exist."
+
+  PROJECT_ENV_FILE="$( dirname $PROJECT_DIR/.. )/project.env"
+  [[ -f "$PROJECT_ENV_FILE" ]] || die "Project environment file does not exist at $PROJECT_ENV_FILE."
+
+  . $PROJECT_ENV_FILE
+
+  [[ ! -z $PROJECT_NAME ]] || die "Project environment file did not specific PROJECT_NAME."
+
+  DOCKER_IMAGE_NAME="$DOCKER_REPO_HOST/$DOCKER_REPO_ORGANIZATION/$PROJECT_NAME"
+  DOCKER_IMAGE="$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG"
+}
+
+exec_or_die() {
+  command="$*"
+  echo "Running: ${command}"
+
+  eval $command
+  retval=$?
+
+  [[ $retval -eq 0 ]] || die "Error ($retval): ${command}" $retval
+}
+
+exec_or_die_with_output() {
+  command="$*"
+  echo "Running: ${command}"
+
+  OUTPUT=$(eval "$command")
+  retval=$?
+  echo "$OUTPUT"
+
+  [[ $retval -eq 0 ]] || die "Error ($retval): ${command}" $retval
+}
+
+exec_optional() {
+  command="$*"
+  echo "Running: ${command}"
+
+  $command
+}
+
+initialize
+case "$1" in
+  build)
+    . "$WCJ_DIR/src/build.sh"
+    build "${@:2}"
+    ;;
+  containers)
+    . "$WCJ_DIR/src/containers.sh"
+    containers "${@:2}"
+    ;;
+  upgrade)
+    . "$WCJ_DIR/src/upgrade.sh"
+    upgrade "${@:2}"
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
+
