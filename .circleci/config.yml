@@ -1,0 +1,43 @@
+version: 2.1
+executors:
+  default:
+    docker:
+      - image: quay.io/womply/build:latest
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+jobs:
+  build-wcj-cli:
+    executor: default
+    steps:
+      - checkout
+      - run: rm -rf .git
+      - run: cd wcj-cli && make build
+      - store_artifacts:
+          path: ~/project/wcj-cli/build/wcj-cli.tgz
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+  deploy-wcj-cli:
+    executor: default
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: cd wcj-cli && make deploy
+workflows:
+  version: 2
+  wcj-cli:
+    jobs:
+      - build-wcj-cli:
+          context:
+            - WCJ
+      - deploy-wcj-cli:
+          context:
+            - WCJ
+          requires:
+            - build-wcj-cli
+          filters:
+            branches:
+              only:
+                - master
