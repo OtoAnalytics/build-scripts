@@ -6,6 +6,7 @@ set -x
 DOCKER_IMAGE_TAG="${1}"
 ENVIRONMENT="${2}"
 MANIFEST_BRANCH="${3:-master}"
+MANIFEST_DIR="manifests-repo"
 KUBERNETES_MANIFESTS_GITHUB_REPO="OtoAnalytics/microservice-manifests"
 REPO=${CIRCLE_PROJECT_REPONAME}
 
@@ -27,8 +28,8 @@ docker tag ${REPO_ROOT}/${REPO}:${CIRCLE_BRANCH} ${DOCKER_IMAGE_COMBINED}
 docker push ${DOCKER_IMAGE_COMBINED}
 
 echo "=== Cloning Manifests Repo ==="
-git clone --single-branch --branch ${MANIFEST_BRANCH} https://${WOMPLY_CIRCLECI_SHARED_USER_GITHUB_ACCESS_TOKEN}@github.com/${KUBERNETES_MANIFESTS_GITHUB_REPO}.git manifests-repo
-cd manifests-repo
+[[ -d ${MANIFEST_DIR} ]] || git clone --single-branch --branch ${MANIFEST_BRANCH} https://${WOMPLY_CIRCLECI_SHARED_USER_GITHUB_ACCESS_TOKEN}@github.com/${KUBERNETES_MANIFESTS_GITHUB_REPO}.git ${MANIFEST_DIR}
+cd ${MANIFEST_DIR}
 
 echo "=== Updating Image Tags ==="
 if [ ! -z "${KUBERNETES_APPLICATIONS}" ]; then
