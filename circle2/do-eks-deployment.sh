@@ -31,11 +31,15 @@ git clone --single-branch --branch ${MANIFEST_BRANCH} https://${WOMPLY_CIRCLECI_
 cd manifests-repo
 
 echo "=== Updating Image Tags ==="
-IFS=',' app_array=($KUBERNETES_APPLICATIONS)
-for application in "${app_array[@]}"; do
-  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/${application}-values.yaml"
-  git add "src/environments/${ENVIRONMENT}/${application}-values.yaml"
-done
+if [ ! -z "${KUBERNETES_APPLICATIONS}" ]; then
+  IFS=',' app_array=($KUBERNETES_APPLICATIONS)
+  for application in "${app_array[@]}"; do
+    sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/${application}.yaml"
+    git add "src/environments/${ENVIRONMENT}/${application}-values.yaml"
+  done
+else
+  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/${REPO}.yaml"
+fi
 
 echo "=== Commit & Push Changes to Manifests Repo ==="
 git config user.name "womply-circleci-shared-user"
