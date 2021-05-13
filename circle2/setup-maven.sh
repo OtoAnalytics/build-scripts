@@ -20,10 +20,12 @@ sudo cp ~/build-scripts/circle/simplelogger.properties ${M2_HOME}/conf/logging/s
 sudo cp ~/build-scripts/circle/aws-maven-assembler-fat.jar ${M2_HOME}/lib/aws-maven-assembler-fat.jar
 
 CURRENT_VERSION=$(mvn -q  -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec|sed 's/-SNAPSHOT.*//')
-if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "java-master" ]; then
+if [ "${CIRCLE_BRANCH}" = "master" -o "${CIRCLE_BRANCH}" = "release-${CURRENT_VERSION}" ]; then
   # create a release version by taking the leading version number and appending the build number
   NEW_VERSION=${CURRENT_VERSION}.${CIRCLE_BUILD_NUM}
 else
+  # remove version from the branch name as it screws up the final Maven version
+  CLEAN_BRANCH_NAME=`echo ${CIRCLE_BRANCH} | sed -e "s/\(-${CURRENT_VERSION}\)//g" | sed -e "s/\(${CURRENT_VERSION}-\)//g"`
   # update maven version to be 1.0-<branchname>-SNAPSHOT
   NEW_VERSION=${CURRENT_VERSION}-${CIRCLE_BRANCH}-SNAPSHOT
 fi
