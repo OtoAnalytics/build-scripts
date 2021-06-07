@@ -1,4 +1,16 @@
 #
+# Open file or directory in web browser; defaults to current directory and branch
+# Syntax: git-web [$file_or_dir] [$branch]
+#
+function gitweb() {
+  file=${1:-""}
+  git_branch=${2:-$(git symbolic-ref --quiet --short HEAD)}
+  git_project_root=$(git config remote.origin.url | sed -r "s~(\w+@|https://|ssh://(\w+@)?)([^:^/]*)(:[0-9]+|)[:/](.*)\.git~https://\3\4/\5~")
+  git_directory=$(git rev-parse --show-prefix)
+  open ${git_project_root}/tree/${git_branch}/${git_directory}${file}
+}
+
+#
 # Deletes a branch locally and remotely
 #
 function gitdelete() {
@@ -31,7 +43,7 @@ function gitmerge() {
     echo "Please provide the name of the branch to be used"
     exit
   fi
-  git stash && \
+  git stash push -m "Files saved before merging branch $SOURCE_BRANCH" && \
   git fetch origin $SOURCE_BRANCH && \
   git checkout $DESTINATION_BRANCH && \
   git pull origin $DESTINATION_BRANCH && \
@@ -47,13 +59,36 @@ function gitmerge() {
 }
 
 #
-# Creates a release branch from an up-to-date `develop` branch and pushed it to remote
+# Creates a release branch from an up-to-date `develop` branch,
+# pushes to remote, and opens PR form in browser
 # Note: uncommited changes are stashed for you to recover later
 #
 function gitrelease() {
-  git stash && \
-  git checkout develop && \
-  git pull origin develop && \
-  git checkout -b release_$(date +"%Y%m%d%H%M%S") && \
-  git push origin HEAD
+  timestamp=$(date +"%Y%m%d%H%M%S")
+  release_branch="release_${timestamp}"
+  git stash push -m "Files saved before creating release branch ${release_branch}" \
+    && git checkout develop \
+    && git pull origin develop \
+    && git checkout -b ${release_branch} \
+    && git push origin HEAD
+  git_project_root=$(git config remote.origin.url | sed -r "s~(\w+@|https://|ssh://(\w+@)?)([^:^/]*)(:[0-9]+|)[:/](.*)\.git~https://\3\4/\5~")
+  # Ref: https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-issues-and-pull-requests-with-query-parameters
+  pull_request_url="${git_project_root}/compare/master...${release_branch}?expand=1&title=Release%20${timestamp}&body="
+  echo "Pull Request URL: ${pull_request_url}"
+  open ${pull_request_url}
+}
+
+#
+# Merges a remote release branch into remote master branch
+# and deletes the release branch locally and remotely
+#
+gitmergemaster() {
+    source_branch=${1:-$(git symbolic-ref --quiet --short HEAD)}
+    echo "source_branch = ${source_branch}"
+    if [[ -z $(echo ${source_branch} | grep release_) ]]; then
+        echo "'${source_branch}' is an invalid release branch name"
+    else
+        echo "Merging branch '$source_branch' into master"
+        gitmerge $source_branch master
+    fi
 }
