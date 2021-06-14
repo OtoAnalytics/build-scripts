@@ -45,6 +45,7 @@ build_docker_image() {
   echo "Building Docker Image $DOCKER_IMAGE"
 
   exec_or_die docker build \
+    --pull \
     --network=host \
     --rm=false \
     --build-arg AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
