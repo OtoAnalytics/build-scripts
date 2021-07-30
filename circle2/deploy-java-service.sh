@@ -12,6 +12,7 @@
 set -e
 
 # Populate the necessary variables
+export AWS_DEFAULT_REGION='us-west-2'
 export CURRENT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
 export SPECIFIC_BRANCH=${TIMESTAMP}-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:7}
