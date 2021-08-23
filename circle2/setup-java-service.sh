@@ -10,6 +10,7 @@
 
 set -e
 
+check-divergency.sh
 setup-docker.sh
 setup-jce.sh
 setup-maven.sh "$@"
