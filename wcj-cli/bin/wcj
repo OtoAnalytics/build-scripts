@@ -13,7 +13,7 @@ initialize() {
 }
 
 usage() {
-  echo "usage: wcj <build|containers|upgrade>"
+  echo "usage: wcj <build|containers|deploy|upgrade>"
 }
 
 die() {
@@ -39,15 +39,14 @@ require_wcj_project() {
 
   [[ ! -z $PROJECT_NAME ]] || die "Project environment file did not specific PROJECT_NAME."
 
-  DOCKER_IMAGE_NAME="$DOCKER_REPO_HOST/$DOCKER_REPO_ORGANIZATION/$PROJECT_NAME"
-  DOCKER_IMAGE="$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG"
-
   PROJECT_TYPE="${PROJECT_TYPE:-service}"
 }
 
 exec_or_die() {
   command="$*"
-  echo "Running: ${command}"
+  if [ -z $QUIET ]; then
+    echo "Running: ${command}"
+  fi
 
   eval $command
   retval=$?
@@ -57,11 +56,15 @@ exec_or_die() {
 
 exec_or_die_with_output() {
   command="$*"
-  echo "Running: ${command}"
+  if [ -z $QUIET ]; then
+    echo "Running: ${command}"
+  fi
 
   OUTPUT=$(eval "$command")
   retval=$?
-  echo "$OUTPUT"
+  if [ -z $QUIET ]; then
+    echo "$OUTPUT"
+  fi
 
   [[ $retval -eq 0 ]] || die "Error ($retval): ${command}" $retval
 }
@@ -82,6 +85,14 @@ case "$1" in
   containers)
     . "$WCJ_DIR/src/containers.sh"
     containers "${@:2}"
+    ;;
+  deploy)
+    . "$WCJ_DIR/src/deploy.sh"
+    deploy "${@:2}"
+    ;;
+  info)
+    . "$WCJ_DIR/src/info.sh"
+    info "${@:2}"
     ;;
   upgrade)
     . "$WCJ_DIR/src/upgrade.sh"

@@ -6,8 +6,6 @@
 # host to reference the other contianers
 CONTAINERS_HOST_NAME="localhost"
 
-DOCKER_HOST_IP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1`
-
 usage() {
   echo "usage: wcj build [-t TEST_ARTIFACTS_DEST] [-p PROJECT_DIR]"
 }
@@ -46,6 +44,8 @@ build_docker_image() {
 
   if [[ ! -z "$2" ]]; then
     OPTS="--target $2"
+  else
+    OPTS=""
   fi
 
   exec_or_die docker build $OPTS \
@@ -91,12 +91,54 @@ copy_test_artifacts() {
   exec_or_die docker rm -f $ARTIFACT_CONTAINER_NAME
 }
 
+check_divergency() {
+  echo "Checking for master/develop divergency"
+
+  OLD_PWD=`pwd`
+  cd $PROJECT_DIR
+
+  exec_or_die git checkout develop
+  exec_or_die git checkout master
+
+  git branch --contains master --format '%(refname:short)' | grep -q '^develop$'
+  contains_return=$?
+  if [ $contains_return -ne 0 ]; then
+    die "This git repo's master branch has diverged from develop!!!"
+  fi
+
+  exec_or_die git checkout "$BRANCH"
+  cd $OLD_PWD
+}
+
+git_and_docker_vars() {
+  DOCKER_IMAGE_NAME="$DOCKER_REPO_HOST/$DOCKER_REPO_ORGANIZATION/$PROJECT_NAME"
+
+  exec_or_die_with_output git rev-parse --abbrev-ref HEAD
+  BRANCH="$OUTPUT"
+  if [ "$BRANCH" = "HEAD" ]; then
+    die "Git repo is in detached head mode. Must be in a named branch to build or deploy."
+  fi
+
+  DOCKER_IMAGE="${DOCKER_IMAGE_NAME}:${BRANCH}"
+
+  exec_or_die_with_output git rev-parse --short $BRANCH
+  SHA="$OUTPUT"
+
+  TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+  FULL_TAG="${TIMESTAMP}-${BRANCH}-${SHA}"
+  DOCKER_FULL_TAG_IMAGE="${DOCKER_IMAGE_NAME}:${FULL_TAG}"
+}
+
 build() {
   parse_opts $@
 
   require_var AWS_ACCESS_KEY_ID
   require_var AWS_SECRET_ACCESS_KEY
   require_wcj_project
+
+  git_and_docker_vars
+
+  check_divergency
 
   start_containers
   set_ci_env_vars

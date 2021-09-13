@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. "$WCJ_DIR/src/common.sh"
+
 # Need this because only builds require the Docker hostname
 CONTAINERS_HOST_NAME="localhost"
 
@@ -8,7 +10,7 @@ usage() {
 }
 
 start_containers() {
-  parse_opts "$@"
+  parse_common_opts "$@"
   require_wcj_project
 
   for container_type in ${CONTAINERS//,/ }; do
@@ -29,7 +31,7 @@ start_containers() {
 }
 
 stop_containers() {
-  parse_opts "$@"
+  parse_common_opts "$@"
   require_wcj_project
 
   for container_type in ${CONTAINERS//,/ }; do
@@ -41,26 +43,6 @@ stop_containers() {
 stop_container() {
   echo "Stopping $1..."
   exec_or_die docker rm -f $1
-}
-
-parse_opts() {
-  while getopts ":p:" opt; do
-    case ${opt} in
-      p )
-        export PROJECT_DIR=$OPTARG
-        ;;
-      \? )
-        echo "Invalid option: -$OPTARG" 1>&2
-        usage
-        exit 1
-        ;;
-      : )
-        echo "Invalid option: -$OPTARG requires an argument" 1>&2
-        usage
-        exit 1
-        ;;
-    esac
-  done
 }
 
 docker_build_arg() {
