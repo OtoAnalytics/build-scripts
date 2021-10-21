@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
 
 DOCKER_IMAGE_TAG=${1:-'latest'}
-ENVIRONMENT_INSTANCE=${2:-'default'}
 ECS_CLUSTER=${3:-'default'}
 ECS_SERVICE=${4:-'default'}
-LAST_COMMIT_MESSAGE=$(git log -1 --pretty='%s')
-LAST_COMMIT=$(git rev-parse HEAD)
+ENVIRONMENT_INSTANCE=${2:-'default'}
 FEATURE="${LAST_COMMIT_MESSAGE##*/}"
+LAST_COMMIT=$(git rev-parse HEAD)
+LAST_COMMIT_MESSAGE=$(git log -1 --pretty='%s')
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+export SPECIFIC_BRANCH=${TIMESTAMP}-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:7}
+MANIFESTS_BRANCH="master"
+MANIFESTS_DIR="manifests-repo"
+MANIFESTS_GITHUB_REPO='OtoAnalytics/microservice-manifests'
+
+if [[ "${CIRCLE_BRANCH}" == 'master' ]]; then
+  EKS_ENVIRONMENT='prod'
+else
+  EKS_ENVIRONMENT='beta'
+fi
 
 HEALTH_CHECK_URL="http://${ECS_SERVICE_NUMBER}.${ENVIRONMENT_INSTANCE}/admin/health"
 SERVICES_HEALTH_CHECK_URL="http://${ECS_SERVICE_NUMBER}.${ENVIRONMENT_INSTANCE}/admin/services_health"
@@ -41,7 +52,16 @@ fi
 
 echo " - Deploying :$DOCKER_IMAGE_TAG to $ECS_SERVICE in the $ECS_CLUSTER cluster"
 deploy_started
-./ecsman -cred env update $ECS_CLUSTER $ECS_SERVICE :$DOCKER_IMAGE_TAG
+# Deploy to ECS if the service exists in ECS
+if [[ ! `aws ecs list-services --cluster ${ECS_CLUSTER} | grep $CIRCLE_PROJECT_REPONAME | wc -l` -eq 0 ]]; then
+  ./ecsman -cred env update $ECS_CLUSTER $ECS_SERVICE :$DOCKER_IMAGE_TAG
+fi
+
+# Deploy to EKS if the service config exists in the microservice manifests
+[[ -d ${MANIFESTS_DIR} ]] || git clone --single-branch --branch ${MANIFESTS_BRANCH} https://${WOMPLY_CIRCLECI_SHARED_USER_GITHUB_ACCESS_TOKEN}@github.com/${MANIFESTS_GITHUB_REPO}.git ${MANIFESTS_DIR}
+if [[ -f "${MANIFESTS_DIR}/src/environments/${EKS_ENVIRONMENT}/image-tags/${CIRCLE_PROJECT_REPONAME}.yaml" ]]; then
+  ../do-eks-deployment.sh ${SPECIFIC_BRANCH} ${EKS_ENVIRONMENT}
+fi
 
 sleep 40
 
