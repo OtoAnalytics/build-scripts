@@ -35,13 +35,15 @@ echo "=== Updating Image Tags ==="
 if [ ! -z "${KUBERNETES_APPLICATIONS}" ]; then
   IFS=',' app_array=($KUBERNETES_APPLICATIONS)
   for application in "${app_array[@]}"; do
-    [[ $application == *-service ]] || microservice_name="${application}-service"
+    [[ ${application} == *-service ]] || application="${application}-service"
     sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
     git add "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
   done
 else
-  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/image-tags/${REPO}.yaml"
-  git add "src/environments/${ENVIRONMENT}/image-tags/${REPO}.yaml"
+  application=${REPO}
+  [[ ${application} == *-service ]] || application="${application}-service"
+  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
+  git add "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
 fi
 
 echo "=== Commit & Push Changes to Manifests Repo ==="
