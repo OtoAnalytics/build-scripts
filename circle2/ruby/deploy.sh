@@ -58,8 +58,10 @@ if [[ ! `aws ecs list-services --cluster ${ECS_CLUSTER} | grep $CIRCLE_PROJECT_R
 fi
 
 # Deploy to EKS if the service config exists in the microservice manifests
+application=${CIRCLE_PROJECT_REPONAME}
+[[ $application == *-service ]] || application="${application}-service"
 [[ -d ${MANIFESTS_DIR} ]] || git clone --single-branch --branch ${MANIFESTS_BRANCH} https://${WOMPLY_CIRCLECI_SHARED_USER_GITHUB_ACCESS_TOKEN}@github.com/${MANIFESTS_GITHUB_REPO}.git ${MANIFESTS_DIR}
-if [[ -f "${MANIFESTS_DIR}/src/environments/${EKS_ENVIRONMENT}/image-tags/${CIRCLE_PROJECT_REPONAME}.yaml" ]]; then
+if [[ -f "${MANIFESTS_DIR}/src/environments/${EKS_ENVIRONMENT}/image-tags/${application}.yaml" ]]; then
   $(dirname $0)/../do-eks-deployment.sh ${SPECIFIC_BRANCH} ${EKS_ENVIRONMENT}
 fi
 
