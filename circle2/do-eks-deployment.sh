@@ -36,14 +36,14 @@ if [ ! -z "${KUBERNETES_APPLICATIONS}" ]; then
   IFS=',' app_array=($KUBERNETES_APPLICATIONS)
   for application in "${app_array[@]}"; do
     [[ ${application} == *-service ]] || application="${application}-service"
-    sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
-    git add "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
+    sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/${application}/image-tag.yaml"
+    git add "src/environments/${ENVIRONMENT}/${application}/image-tag.yaml"
   done
 else
   application=${REPO}
   [[ ${application} == *-service ]] || application="${application}-service"
-  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
-  git add "src/environments/${ENVIRONMENT}/image-tags/${application}.yaml"
+  sed "s~^  tag: .*~  tag: ${DOCKER_IMAGE_TAG}~g" -i "src/environments/${ENVIRONMENT}/${application}/image-tag.yaml"
+  git add "src/environments/${ENVIRONMENT}/${application}/image-tag.yaml"
 fi
 
 echo "=== Commit & Push Changes to Manifests Repo ==="
